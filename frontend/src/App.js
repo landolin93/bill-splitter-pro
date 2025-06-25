@@ -417,7 +417,7 @@ function App() {
                 </div>
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total:</span>
-                  <span>${(rounding === 'total' ? Math.ceil(getTotal()) : getTotal()).toFixed(2)}</span>
+                  <span>${getTotal().toFixed(2)}</span>
                 </div>
               </div>
             </div>
