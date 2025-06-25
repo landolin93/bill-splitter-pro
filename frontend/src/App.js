@@ -111,8 +111,24 @@ function App() {
     return subtotal * (tip.percentage / 100);
   };
 
-  const getTotal = () => {
+  const getBaseTotal = () => {
     return getSubtotal() + getTaxAmount() + getTipAmount();
+  };
+
+  const getTotal = () => {
+    const baseTotal = getBaseTotal();
+    
+    if (rounding === 'total') {
+      return Math.ceil(baseTotal);
+    } else if (rounding === 'individual') {
+      // Sum of all individual rounded totals
+      return people.reduce((sum, person) => {
+        const personCosts = getPersonTotal(person.id);
+        return sum + personCosts.total;
+      }, 0);
+    } else {
+      return baseTotal;
+    }
   };
 
   const getPersonTotal = (personId) => {
@@ -130,22 +146,45 @@ function App() {
     const totalSubtotal = getSubtotal();
     const proportion = totalSubtotal > 0 ? personSubtotal / totalSubtotal : 0;
     
-    const personTax = getTaxAmount() * proportion;
-    const personTip = getTipAmount() * proportion;
-    
-    let personTotal = personSubtotal + personTax + personTip;
+    const personBaseTax = getTaxAmount() * proportion;
+    const personBaseTip = getTipAmount() * proportion;
+    const personBaseTotal = personSubtotal + personBaseTax + personBaseTip;
 
-    // Apply rounding
+    // Apply rounding logic
     if (rounding === 'individual') {
-      personTotal = Math.ceil(personTotal);
+      // Round each person up individually
+      const roundedTotal = Math.ceil(personBaseTotal);
+      return {
+        subtotal: personSubtotal,
+        tax: personBaseTax,
+        tip: personBaseTip,
+        total: roundedTotal
+      };
+    } else if (rounding === 'total') {
+      // Distribute the rounded total difference proportionally
+      const baseTotal = getBaseTotal();
+      const roundedTotal = Math.ceil(baseTotal);
+      const difference = roundedTotal - baseTotal;
+      
+      // Add proportional share of the rounding difference
+      const adjustmentRatio = baseTotal > 0 ? personBaseTotal / baseTotal : 0;
+      const personAdjustment = difference * adjustmentRatio;
+      
+      return {
+        subtotal: personSubtotal,
+        tax: personBaseTax + (personAdjustment * (personBaseTax / personBaseTotal)),
+        tip: personBaseTip + (personAdjustment * (personBaseTip / personBaseTotal)),
+        total: personBaseTotal + personAdjustment
+      };
+    } else {
+      // No rounding
+      return {
+        subtotal: personSubtotal,
+        tax: personBaseTax,
+        tip: personBaseTip,
+        total: personBaseTotal
+      };
     }
-
-    return {
-      subtotal: personSubtotal,
-      tax: personTax,
-      tip: personTip,
-      total: personTotal
-    };
   };
 
   const getPersonItems = (personId) => {
