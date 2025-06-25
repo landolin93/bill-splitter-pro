@@ -106,13 +106,40 @@ function App() {
     }
   };
 
-  const getTipAmount = () => {
+  const getBaseTipAmount = () => {
     const subtotal = getSubtotal();
     return subtotal * (tip.percentage / 100);
   };
 
+  const getTipAmount = () => {
+    const baseTip = getBaseTipAmount();
+    
+    if (rounding === 'total') {
+      const baseTotal = getBaseTotal();
+      const roundedTotal = Math.ceil(baseTotal);
+      const difference = roundedTotal - baseTotal;
+      return baseTip + difference; // Add rounding difference to tip
+    } else if (rounding === 'individual') {
+      // Calculate total rounding difference from all individuals
+      const totalRoundingDifference = people.reduce((sum, person) => {
+        const personBaseTotal = getPersonBaseTotal(person.id);
+        const roundedPersonTotal = Math.ceil(personBaseTotal);
+        return sum + (roundedPersonTotal - personBaseTotal);
+      }, 0);
+      return baseTip + totalRoundingDifference;
+    } else {
+      return baseTip;
+    }
+  };
+
+  const getEffectiveTipPercentage = () => {
+    const subtotal = getSubtotal();
+    if (subtotal === 0) return 0;
+    return (getTipAmount() / subtotal) * 100;
+  };
+
   const getBaseTotal = () => {
-    return getSubtotal() + getTaxAmount() + getTipAmount();
+    return getSubtotal() + getTaxAmount() + getBaseTipAmount();
   };
 
   const getTotal = () => {
@@ -123,12 +150,33 @@ function App() {
     } else if (rounding === 'individual') {
       // Sum of all individual rounded totals
       return people.reduce((sum, person) => {
-        const personCosts = getPersonTotal(person.id);
-        return sum + personCosts.total;
+        const personBaseTotal = getPersonBaseTotal(person.id);
+        return sum + Math.ceil(personBaseTotal);
       }, 0);
     } else {
       return baseTotal;
     }
+  };
+
+  const getPersonBaseTotal = (personId) => {
+    let personSubtotal = 0;
+    
+    // Calculate person's meal cost
+    items.forEach(item => {
+      const assignedPeople = assignments[item.id] || [];
+      if (assignedPeople.includes(personId)) {
+        personSubtotal += item.price / assignedPeople.length;
+      }
+    });
+
+    // Calculate proportional tax and tip (base amounts)
+    const totalSubtotal = getSubtotal();
+    const proportion = totalSubtotal > 0 ? personSubtotal / totalSubtotal : 0;
+    
+    const personTax = getTaxAmount() * proportion;
+    const personBaseTip = getBaseTipAmount() * proportion;
+    
+    return personSubtotal + personTax + personBaseTip;
   };
 
   const getPersonTotal = (personId) => {
@@ -146,43 +194,47 @@ function App() {
     const totalSubtotal = getSubtotal();
     const proportion = totalSubtotal > 0 ? personSubtotal / totalSubtotal : 0;
     
-    const personBaseTax = getTaxAmount() * proportion;
-    const personBaseTip = getTipAmount() * proportion;
-    const personBaseTotal = personSubtotal + personBaseTax + personBaseTip;
+    const personTax = getTaxAmount() * proportion;
+    let personTip = getBaseTipAmount() * proportion;
 
     // Apply rounding logic
     if (rounding === 'individual') {
-      // Round each person up individually
+      // Round each person up individually, add difference to their tip
+      const personBaseTotal = personSubtotal + personTax + personTip;
       const roundedTotal = Math.ceil(personBaseTotal);
+      const difference = roundedTotal - personBaseTotal;
+      personTip += difference; // Add rounding difference to tip
+      
       return {
         subtotal: personSubtotal,
-        tax: personBaseTax,
-        tip: personBaseTip,
+        tax: personTax,
+        tip: personTip,
         total: roundedTotal
       };
     } else if (rounding === 'total') {
-      // Distribute the rounded total difference proportionally
+      // Distribute the rounded total difference proportionally to tips
       const baseTotal = getBaseTotal();
       const roundedTotal = Math.ceil(baseTotal);
       const difference = roundedTotal - baseTotal;
       
-      // Add proportional share of the rounding difference
+      // Add proportional share of the rounding difference to tip
+      const personBaseTotal = personSubtotal + personTax + personTip;
       const adjustmentRatio = baseTotal > 0 ? personBaseTotal / baseTotal : 0;
-      const personAdjustment = difference * adjustmentRatio;
+      const personTipAdjustment = difference * adjustmentRatio;
       
       return {
         subtotal: personSubtotal,
-        tax: personBaseTax + (personAdjustment * (personBaseTax / personBaseTotal)),
-        tip: personBaseTip + (personAdjustment * (personBaseTip / personBaseTotal)),
-        total: personBaseTotal + personAdjustment
+        tax: personTax,
+        tip: personTip + personTipAdjustment,
+        total: personBaseTotal + personTipAdjustment
       };
     } else {
       // No rounding
       return {
         subtotal: personSubtotal,
-        tax: personBaseTax,
-        tip: personBaseTip,
-        total: personBaseTotal
+        tax: personTax,
+        tip: personTip,
+        total: personSubtotal + personTax + personTip
       };
     }
   };
