@@ -333,16 +333,57 @@ function App() {
             <div className="space-y-2">
               {items.map(item => (
                 <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-md">
-                  <div>
-                    <span className="font-medium">{item.name}</span>
-                    <span className="text-green-600 ml-2">${item.price.toFixed(2)}</span>
-                  </div>
-                  <button
-                    onClick={() => deleteItem(item.id)}
-                    className="text-red-500 hover:text-red-700 text-xl font-bold"
-                  >
-                    ×
-                  </button>
+                  {editingItem === item.id ? (
+                    // Edit mode
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onKeyPress={(e) => e.key === 'Enter' && saveEditItem()}
+                        autoFocus
+                      />
+                      <input
+                        type="number"
+                        value={editPrice}
+                        onChange={(e) => setEditPrice(e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onKeyPress={(e) => e.key === 'Enter' && saveEditItem()}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={saveEditItem}
+                          className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelEditItem}
+                          className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Display mode
+                    <>
+                      <button
+                        onClick={() => startEditItem(item)}
+                        className="flex-1 text-left hover:bg-gray-100 p-1 rounded transition-colors"
+                      >
+                        <span className="font-medium">{item.name}</span>
+                        <span className="text-green-600 ml-2">${item.price.toFixed(2)}</span>
+                      </button>
+                      <button
+                        onClick={() => deleteItem(item.id)}
+                        className="text-red-500 hover:text-red-700 text-xl font-bold ml-2"
+                      >
+                        ×
+                      </button>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
