@@ -11,6 +11,20 @@ function App() {
   const [rounding, setRounding] = useState('none');
   const [selectedPerson, setSelectedPerson] = useState(null);
 
+  // Reset Function
+  const resetAll = () => {
+    setItems([]);
+    setPeople([]);
+    setAssignments({});
+    setTax({ type: 'percentage', value: 0 });
+    setTip({ percentage: 0 });
+    setRounding('none');
+    setSelectedPerson(null);
+    setNewItemName('');
+    setNewItemPrice('');
+    setNewPersonName('');
+  };
+
   // Item Management
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
