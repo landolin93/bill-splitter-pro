@@ -45,12 +45,41 @@ function App() {
     }
   };
 
+  const startEditItem = (item) => {
+    setEditingItem(item.id);
+    setEditName(item.name);
+    setEditPrice(item.price.toString());
+  };
+
+  const saveEditItem = () => {
+    if (editName.trim() && editPrice.trim()) {
+      setItems(items.map(item => 
+        item.id === editingItem 
+          ? { ...item, name: editName.trim(), price: parseFloat(editPrice) }
+          : item
+      ));
+      setEditingItem(null);
+      setEditName('');
+      setEditPrice('');
+    }
+  };
+
+  const cancelEditItem = () => {
+    setEditingItem(null);
+    setEditName('');
+    setEditPrice('');
+  };
+
   const deleteItem = (id) => {
     setItems(items.filter(item => item.id !== id));
     // Remove assignments for deleted item
     const newAssignments = { ...assignments };
     delete newAssignments[id];
     setAssignments(newAssignments);
+    // Cancel editing if this item was being edited
+    if (editingItem === id) {
+      cancelEditItem();
+    }
   };
 
   // People Management
