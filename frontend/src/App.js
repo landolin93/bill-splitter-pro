@@ -465,7 +465,14 @@ function App() {
                 </div>
                 <div className="flex justify-between">
                   <span>Tip:</span>
-                  <span>${getTipAmount().toFixed(2)}</span>
+                  <div className="text-right">
+                    <div>${getTipAmount().toFixed(2)}</div>
+                    {rounding !== 'none' && getEffectiveTipPercentage() !== tip.percentage && (
+                      <div className="text-xs text-gray-600">
+                        ({getEffectiveTipPercentage().toFixed(1)}% effective)
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total:</span>
