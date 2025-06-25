@@ -488,17 +488,18 @@ function App() {
                 {people.map(person => {
                   const personCosts = getPersonTotal(person.id);
                   return (
-                    <div key={person.id} className="bg-blue-50 p-3 rounded-md">
+                    <button
+                      key={person.id}
+                      onClick={() => setSelectedPerson(person)}
+                      className="bg-blue-50 p-3 rounded-md hover:bg-blue-100 transition-colors w-full text-left"
+                    >
                       <div className="flex justify-between items-center">
                         <span className="font-medium">{person.name}</span>
-                        <button
-                          onClick={() => setSelectedPerson(person)}
-                          className="text-blue-600 hover:text-blue-800 font-semibold"
-                        >
+                        <span className="text-blue-600 font-semibold">
                           ${personCosts.total.toFixed(2)}
-                        </button>
+                        </span>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
