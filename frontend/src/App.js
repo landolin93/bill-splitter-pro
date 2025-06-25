@@ -23,6 +23,9 @@ function App() {
     setNewItemName('');
     setNewItemPrice('');
     setNewPersonName('');
+    setEditingItem(null);
+    setEditName('');
+    setEditPrice('');
   };
 
   // Item Management
