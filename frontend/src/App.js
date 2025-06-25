@@ -28,6 +28,9 @@ function App() {
   // Item Management
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
+  const [editingItem, setEditingItem] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editPrice, setEditPrice] = useState('');
 
   const addItem = () => {
     if (newItemName.trim() && newItemPrice.trim()) {
